@@ -6092,56 +6092,36 @@ function append_search_result_to_list(files) {
       .text($list.find("li.mdui-list-item").length);
   }
 }
-function get_file(path, file, callback) {
-  var key = "file_path_" + path + file.modifiedTime;
-  var data = localStorage.getItem(key);
-  if (data != undefined) {
-    return callback(data);
-  } else {
-    $.get(path, function (d) {
-      localStorage.setItem(key, d);
-      callback(d);
-    });
-  }
+function onSearchResultItemClick(a_ele) {
+  var me = $(a_ele);
+  var can_preview = me.hasClass("view");
+  var cur = window.current_drive_order;
+
+  // Modal দেখানোর জন্য ইনিশিয়াল লোডিং স্ক্রিন এখানে শুরু হতো, সেটি বাদ দেওয়া হলো।
+  // আমরা ধরে নিচ্ছি আপনার UI লোডিং স্পিনার ছাড়া সরাসরি কাজ করবে।
+
+  // $.post দিয়ে আইডি থেকে পাথ খোঁজা শুরু
+  $.post(`/${cur}:id2path`, { id: a_ele.id }, function (data) {
+    if (data) {
+      // Modal সফলভাবে বন্ধ করার দরকার নেই কারণ Modal খোলা হচ্ছে না।
+      
+      var href = `/${cur}:${data}${can_preview ? "?a=view" : ""}`;
+      
+      // ✅ সরাসরি ফাইল ভিউ / রিডাইরেক্ট করা হচ্ছে
+      window.location.href = href; 
+      
+      return;
+    }
+    
+    // ❌ পাথ খুঁজে না পেলে শুধু কনসোলে এরর দেখানো ভালো, 
+    // কারণ Modal না থাকলে ইউজারকে বোঝানো কঠিন হবে।
+    console.error("Failed to get the target path for ID:", a_ele.id);
+
+    // অথবা, আপনি একটি সাধারণ অ্যালার্ট দেখাতে পারেন:
+    alert("Failed to open file. Path not found.");
+  });
 }
-function file(path) {
-  var name = path.split("/").pop();
-  var ext = name
-    .split(".")
-    .pop()
-    .toLowerCase()
-    .replace(`?a=view`, "")
-    .toLowerCase();
-  if ("|html|php|css|go|java|js|json|txt|sh|md|".indexOf(`|${ext}|`) >= 0) {
-    return file_code(path);
-  }
-  if ("|mp4|webm|avi|".indexOf(`|${ext}|`) >= 0) {
-    return file_video(path);
-  }
-  if ("|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
-    return file_video(path);
-  }
-  if ("|mp3|flac|wav|ogg|m4a|".indexOf(`|${ext}|`) >= 0) {
-    return file_audio(path);
-  }
-  if ("|bmp|jpg|jpeg|png|gif|".indexOf(`|${ext}|`) >= 0) {
-    return file_image(path);
-  }
-  if ("pdf" === ext) return file_pdf(path);
-}
-function file_code(path) {
-  var type = {
-    html: "html",
-    php: "php",
-    css: "css",
-    go: "golang",
-    java: "java",
-    js: "javascript",
-    json: "json",
-    txt: "Text",
-    sh: "sh",
-    md: "Markdown",
-  };
+
   var name = path.split("/").pop();
   var file_name = decodeURIComponent(path.trim("/").split("/").slice(-1)[0].replaceAll("%5C%5C", "%5C"));
   var ext = name.split(".").pop().toLowerCase();
