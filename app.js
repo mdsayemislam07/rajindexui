@@ -6092,58 +6092,6 @@ function append_search_result_to_list(files) {
       .text($list.find("li.mdui-list-item").length);
   }
 }
-function onSearchResultItemClick(a_ele) {
-  var me = $(a_ele);
-  var can_preview = me.hasClass("view");
-  var cur = window.current_drive_order;
-  var dialog = mdui.dialog({
-    title: "",
-    content:
-      '<div class="mdui-text-center mdui-typo-title mdui-m-b-1">Getting Target Path...</div><div class="mdui-spinner mdui-spinner-colorful mdui-center"></div>',
-    history: !1,
-    modal: !0,
-    closeOnEsc: !0,
-  });
-  mdui.updateSpinners();
-  $.post(`/${cur}:id2path`, { id: a_ele.id }, function (data) {
-    if (data) {
-      dialog.close();
-      var href = `/${cur}:${data}${can_preview ? "?a=view" : ""}`;
-      dialog = mdui.dialog({
-        title: '<i class="mdui-icon material-icons"></i>Target Path',
-        content: `<a href="${href}">${data}</a>`,
-        history: !1,
-        modal: !0,
-        closeOnEsc: !0,
-        buttons: [
-          {
-            text: "Open in same tab",
-            onClick: function () {
-              window.location.href = href;
-            },
-          },
-          {
-            text: "Open in new tab",
-            onClick: function () {
-              window.open(href);
-            },
-          },
-          { text: "Cancel" },
-        ],
-      });
-      return;
-    }
-    dialog.close();
-    dialog = mdui.dialog({
-      title: '<i class="mdui-icon material-icons">&#xe811;</i>Failed to get the target path',
-      content: "It may be because this item does not exist in the Folder! It may also be because the file [Shared with me] has not been added to Personal Drive!",
-      history: !1,
-      modal: !0,
-      closeOnEsc: !0,
-      buttons: [{ text: "WTF ???" }],
-    });
-  });
-}
 function get_file(path, file, callback) {
   var key = "file_path_" + path + file.modifiedTime;
   var data = localStorage.getItem(key);
